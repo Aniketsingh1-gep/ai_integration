@@ -1,0 +1,6 @@
+<input #input type="text" id ="myInputNumeric" class="numeric-textfield"
+    [ngModel]="localData"
+    [attr.title]="localData"
+    (ngModelChange)="ngModelChange($event)" [ngClass] ="{'mandatory-grid-numeric': checkIsMandatory()}"
+    numericPrecision [input]="config"
+    (keydown) = "restrictkey($event)" (mouseover)="setFocus()" (focusout) = "focusOut()" (paste)="onPaste($event)">

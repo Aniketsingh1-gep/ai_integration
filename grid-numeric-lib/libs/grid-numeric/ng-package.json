@@ -1,0 +1,7 @@
+{
+  "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "../../dist/grid-numeric",
+  "lib": {
+    "entryFile": "src/index.ts"
+  }
+}

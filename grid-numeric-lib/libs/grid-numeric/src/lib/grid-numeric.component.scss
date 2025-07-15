@@ -1,0 +1,26 @@
+@import "~@nexxe/assets/src/sass/_variables";
+ 
+input.numeric-textfield {
+    height: 30px !important;
+    border: 2px solid;
+    background-color: $backColorWhite !important;
+    border-radius: 2px !important;
+    box-shadow: none !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+}
+ 
+input.numeric-textfield:focus-visible {
+    border-color: var(--tabbableFocusColor) !important;
+}
+ 
+input.numeric-textfield:focus {
+     border-color: var(--tabbableFocusColor) !important;
+}
+ 
+input.numeric-textfield.mandatory-grid-numeric {
+    background-color: #feffe1 !important;
+}

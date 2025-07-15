@@ -1,0 +1,9 @@
+{
+  "name": "@nexxe/grid-numeric",
+  "version": "3.0.24",
+  "peerDependencies": {
+    "@angular/common": "~8.2.14",
+    "@angular/core": "~8.2.14",
+    "@nexxe/plugin-injector": "latest"
+  }
+}
