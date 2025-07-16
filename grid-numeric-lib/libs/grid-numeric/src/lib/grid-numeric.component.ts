@@ -40,7 +40,7 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cellId = `${this.params.data.rowId}-${this.params.colDef.columnId}`;
     // this.getNumericConfig();
     this.setSeparatorByLocale();
-    this.localData = this.validateDecimalSeprator(this.params.value);
+    this.localData = this.validateDecimalSeparator(this.params.value); // Fixed typo
     if (this.config.defaultValue != undefined && this.config.defaultValue === "") {
       this.config.defaultValue = ""
     } else {
@@ -71,21 +71,27 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
     this.decimalSeparator = localeConfig.decimalSeparator;
   }
 
-  validateDecimalSeprator(value:any){
-    if(value == undefined) return 
-    return String(value).replace(".",this.decimalSeparator);
+  /**
+   * Converts the decimal separator in the value to the locale-specific separator.
+   * @param value The value to convert.
+   */
+  validateDecimalSeparator(value: any) {
+    if (value == undefined) return;
+    return String(value).replace('.', this.decimalSeparator);
   }
 
+  /**
+   * Returns the parsed value, converting to string '0' if value is 0 for ag-grid compatibility.
+   */
   getValue(): any {
-    let value: number = this.parseValue()
-    return (value === 0) ? "0" : value; // Ag-grid setDataValue(field,value) function returns false when value == 0 it will update params.data == ''
+    let value: number = this.parseValue();
+    return (value === 0) ? "0" : value;
   };
 
   ngAfterViewInit(): void {
-    let that = this
     setTimeout(() => {
-      that.input.nativeElement.focus();
-    })
+      this.input.nativeElement.focus();
+    });
   }
 
   setFocus() {
@@ -97,12 +103,14 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
     this.params.api.stopEditing();
   }
 
-
+  /**
+   * Handles ngModel changes, validates value and triggers onChange event if present.
+   */
   ngModelChange(event) {
     const lastValue = this.localData;
     this.localData = event;
     let value: number = this.parseValue();
-   
+
     if (!this.isKeyDownEvent && value != null && ((value > Number(this.config.attributes.maxValue)) || (value < Number(this.config.attributes.minValue)))) {
       setTimeout(() => {
         this.localData = lastValue;
@@ -111,61 +119,79 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       return;
     }
-   
+
     this.params.value = value;
     (this.config.events && this.config.events.onChange) &&
       this.params.gridService[this.config.events.onChange](this.params, value);
   }
 
-  // Created common function for parsing
-  parseValue(){
-    if(this.localData === undefined) return this.localData;
-    if(this.localData === "" || this.localData == null) return null
-    if(this.localData == "0") return 0;
+  /**
+   * Parses the localData to a number, handling decimal separator and NaN cases.
+   */
+  parseValue() {
+    if (this.localData === undefined) return this.localData;
+    if (this.localData === "" || this.localData == null) return null;
+    if (this.localData == "0") return 0;
 
     let parsedvalue: any = this.localData;
-    parsedvalue = String(this.localData).replace(this.decimalSeparator,".");
+    parsedvalue = String(this.localData).replace(this.decimalSeparator, ".");
     parsedvalue = parsedvalue % 1 === 0 ? parseInt(parsedvalue) : parseFloat(parsedvalue);
     parsedvalue = isNaN(parsedvalue) ? null : parsedvalue;
 
     return parsedvalue;
   }
 
+  /**
+   * Restricts key input to valid numeric values, including locale decimal separator and minus sign.
+   * Handles max/min value and precision enforcement.
+   */
   restrictkey(keydownEvent: any) {
-
     if (keydownEvent.keyCode == null) {
       this.isKeyDownEvent = false;
       return;
-    }else{
+    } else {
       this.isKeyDownEvent = true;
     }
-    
-    if (keydownEvent.keyCode==13) {
+
+    if (keydownEvent.keyCode == 13) {
       this.params.stopEditing();
       return;
     }
-    
+
     const numericValues = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     let currValue = keydownEvent.currentTarget['value'];
     let ctrlKey = keydownEvent.ctrlKey ? keydownEvent.ctrlKey : ((keydownEvent['keyCode'] === 17) ? true : false);
 
-    if (keydownEvent['keyCode'] === 8 || keydownEvent['keyCode'] === 9 || keydownEvent['keyCode'] === 46 || keydownEvent['keyCode'] === 37 || keydownEvent['keyCode'] === 39 || ctrlKey && keydownEvent['keyCode'] === 67 || ctrlKey && keydownEvent['keyCode'] === 86 || ctrlKey && keydownEvent['keyCode'] === 88 || ctrlKey && keydownEvent['keyCode'] === 65) {
-      // Back , left right , delete, tab arrows 
-    }
-    else if (keydownEvent['key'] === '-') { 
-      if ( this.config.attributes.restrictMinus || currValue < 0 || currValue.indexOf("-") != -1 || currValue == "-") {
+    if (
+      keydownEvent['keyCode'] === 8 || keydownEvent['keyCode'] === 9 || keydownEvent['keyCode'] === 46 ||
+      keydownEvent['keyCode'] === 37 || keydownEvent['keyCode'] === 39 ||
+      (ctrlKey && [67, 86, 88, 65].includes(keydownEvent['keyCode']))
+    ) {
+      // Allow backspace, tab, delete, arrows, ctrl+c/v/x/a
+    } else if (keydownEvent['key'] === '-') {
+      if (
+        this.config.attributes.restrictMinus ||
+        currValue < 0 ||
+        currValue.indexOf("-") != -1 ||
+        currValue == "-"
+      ) {
         keydownEvent.preventDefault();
       }
-
     } else if (keydownEvent['key'] == this.decimalSeparator) {
       if (parseInt(currValue) < Number(this.config.attributes.minValue)) {
         keydownEvent.preventDefault();
       }
-      if (currValue.indexOf(this.decimalSeparator) != -1 || currValue == '-' || this.maxPrecision == 0) { // Keep it empty currValue
+      if (
+        currValue.indexOf(this.decimalSeparator) != -1 ||
+        currValue == '-' ||
+        this.maxPrecision == 0
+      ) {
         keydownEvent.preventDefault();
       }
-    }
-    else if (!(keydownEvent['keyCode'] >= 48 && keydownEvent['keyCode'] <= 57) && !(keydownEvent['keyCode'] >= 96 && keydownEvent['keyCode'] <= 105)) {
+    } else if (
+      !(keydownEvent['keyCode'] >= 48 && keydownEvent['keyCode'] <= 57) &&
+      !(keydownEvent['keyCode'] >= 96 && keydownEvent['keyCode'] <= 105)
+    ) {
       if (keydownEvent.code == "Enter") {
         this.params.api.stopEditing();
       } else {
@@ -175,31 +201,48 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
       keydownEvent.preventDefault();
     }
 
-    let newValue;
-    newValue = this.extractNumber(this.insert(currValue, keydownEvent.target.selectionStart, 0, keydownEvent['key']));
+    let newValue = this.extractNumber(
+      this.insert(currValue, keydownEvent.target.selectionStart, 0, keydownEvent['key'])
+    );
     // Preventing if number is less or greater than config mentioned values
-    if (![8, 46].includes(keydownEvent.keyCode) && (Number(this.config.attributes.maxValue) || Number(this.config.attributes.minValue))) {
-      //newValue = this.extractNumber(this.insert(currValue, keydownEvent.target.selectionStart, 0, keydownEvent['key']));
-      if ((newValue > Number(this.config.attributes.maxValue)) || (newValue < Number(this.config.attributes.minValue))) {
+    if (
+      ![8, 46].includes(keydownEvent.keyCode) &&
+      (Number(this.config.attributes.maxValue) || Number(this.config.attributes.minValue))
+    ) {
+      if (
+        (newValue > Number(this.config.attributes.maxValue)) ||
+        (newValue < Number(this.config.attributes.minValue))
+      ) {
         keydownEvent.preventDefault();
       }
     }
-    //newValueParts array is added as user is not able to ytpe in new value if the precision is already reached. 
-    //i.e. Left side of the number is not editable before the decimal
+    // Prevent typing if precision is already reached
     let newValueParts = newValue.toString().split(this.decimalSeparator);
     let parts = currValue.split(this.decimalSeparator);
     if (parts[0].startsWith("0") && parts[0].length > 1) {
       parts[0] = parts[0].replace(/^0+/, '');
     }
-    if (newValueParts[0] == parts[0] && parts.length > 1 && parts[1].length >= this.maxPrecision && (!([8, 9, 37, 39, 46, 65, 67, 86, 99].includes(keydownEvent['keyCode'])) || (keydownEvent['keyCode'] == 99 && keydownEvent['code'] == 'Numpad3'))) {
+    if (
+      newValueParts[0] == parts[0] &&
+      parts.length > 1 &&
+      parts[1].length >= this.maxPrecision &&
+      (!([8, 9, 37, 39, 46, 65, 67, 86, 99].includes(keydownEvent['keyCode'])) ||
+        (keydownEvent['keyCode'] == 99 && keydownEvent['code'] == 'Numpad3'))
+    ) {
       keydownEvent.preventDefault();
     }
   }
 
+  /**
+   * Utility to insert a substring into a string at a given position.
+   */
   insert(string, start, delCount, newSubStr) {
     return string.slice(0, start) + newSubStr + string.slice(start + Math.abs(delCount));
   }
 
+  /**
+   * Utility to extract a number from a string, converting locale decimal separator to '.'
+   */
   extractNumber(_numModel) {
     if (_numModel.indexOf(this.decimalSeparator) > -1) {
       _numModel = _numModel.split(this.decimalSeparator).join('.');
@@ -207,17 +250,30 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
     return parseInt(_numModel);
   }
 
+  /**
+   * Handles paste event, validates pasted content for numeric and precision constraints.
+   */
   onPaste(event: ClipboardEvent) {
     let validContent: string;
     let clipboardData = event.clipboardData;
+    if (!clipboardData) {
+      event.preventDefault();
+      return;
+    }
     let pastedText = clipboardData.getData('text');
-    if(/[\r\n]/.test(pastedText)){
+    if (/[\n]/.test(pastedText)) {
       pastedText = pastedText.replace(/(\r\n|\n|\r)/gm, '');
     }
     let separator = this.decimalSeparator == "." ? "\\." : this.decimalSeparator;
     let regex = new RegExp(`^-?\\d*${separator}?\\d{0,${this.maxPrecision}}$`);
     validContent = (this.localData || '').toString().concat(pastedText);
-    if (isNaN(Number(pastedText)) || (this.config.attributes.restrictMinus == true && parseInt(validContent) < 0) || parseInt(validContent) < Number(this.config.attributes.minValue) || parseInt(validContent) > Number(this.config.attributes.maxValue) || (!(regex).test(validContent))) {
+    if (
+      isNaN(Number(pastedText)) ||
+      (this.config.attributes.restrictMinus == true && parseInt(validContent) < 0) ||
+      parseInt(validContent) < Number(this.config.attributes.minValue) ||
+      parseInt(validContent) > Number(this.config.attributes.maxValue) ||
+      !regex.test(validContent)
+    ) {
       event.preventDefault();
     }
   }
@@ -234,7 +290,7 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
     let num = this.parseValue();
     if (this.initialValue !== num) {
       this.params.value = num;
-      this.params.column && this.params.node.setDataValue(this.params.column, (num === 0 ? "0" : num));// We are returning "0" when num is 0 because setDataValue(field,num) return false when num is 0;
+      this.params.column && this.params.node.setDataValue(this.params.column, (num === 0 ? "0" : num));
       (this.config.events && this.config.events.onBlur) && this.params.gridService[this.config.events.onBlur](this.params, num);
     }
     this.subscription && this.subscription.unsubscribe();
