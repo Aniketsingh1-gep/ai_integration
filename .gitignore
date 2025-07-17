@@ -1,0 +1,43 @@
+# Build results
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code settings
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment files and secrets
+.env
+*.env
+secrets.json
+
+# Logs
+*.log
+
+# Test results
+TestResults/
+*.trx
+
+# Temporary files
+*.swp
+*.tmp
+
+# JSON files you want to keep local (uncomment if needed)
+# *.json
+
+# Rider IDE files
+.idea/
+
+# NuGet packages
+*.nupkg
+packages/
