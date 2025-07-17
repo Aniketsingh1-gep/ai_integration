@@ -26,14 +26,18 @@ public class CallAIAgent
         AIAgentPayload agentPayload = new AIAgentPayload
         {
             bpc = 20210511,
-            environment = "DEV",
-            version = "1ac64535-37d5-44b0-b406-95a537780e0b",
+            
+            environment = $"{Environment.GetEnvironmentVariable("AGENT_ENVIRONMENT")}",
+
+            version = $"{Environment.GetEnvironmentVariable("AGENT_VERSION")}",
+
             message = $"{BuildMessage(fileMap)}, Description: {PRBody}, Existing Content: {existingBody}",
+
             options = new Option
             {
                 enableDebug = true,
                 enableRelatedQuestions = true,
-                sessionId = "d6a807ec-3151-4bba-8c10-3fe6279c7fd1",
+                sessionId = $"{Environment.GetEnvironmentVariable("AGENT_SESSION_ID")}",
                 ReturnOnlyCurrentMessages = true
             }
         };
@@ -59,6 +63,7 @@ public class CallAIAgent
         // var subscriptionKey=HttpContext.Request.Headers["Ocp-Apim-Subscription-Key"].ToString();
 
         agentClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {Environment.GetEnvironmentVariable("AGENT_API_TOKEN")}");
+        
         agentClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", $"{Environment.GetEnvironmentVariable("OCP-APIM-SUBSCRIPTION-KEY")}");
 
 
