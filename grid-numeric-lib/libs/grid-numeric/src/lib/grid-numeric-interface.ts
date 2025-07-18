@@ -21,4 +21,8 @@ export interface INumeric {
 
     test1: any,
     test2: any,
+
+
+    test3: any,
+    test4: any,
 }
