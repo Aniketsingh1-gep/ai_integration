@@ -7,9 +7,13 @@ export interface INumeric {
         onChange?: any,
         onBlur?: any
     }
-    property1?: any,                // this is relevant change
+    property1?: any,                
     property2?: any
 
     testPropety1?: any,
     testProperty2?: any,
+
+    propertyAddDemo?: any,
+    propertyAddDemo2?: any,
+
 }
