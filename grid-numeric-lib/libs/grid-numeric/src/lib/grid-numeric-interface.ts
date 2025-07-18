@@ -7,4 +7,6 @@ export interface INumeric {
         onChange?: any,
         onBlur?: any
     }
+    property1?: any,                // this is relevant change
+    property2?: any
 }
