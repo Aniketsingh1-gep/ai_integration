@@ -1,3 +1,29 @@
+/**
+ * GridNumericComponent
+ * -------------------
+ * A reusable numeric input component for grid cells, supporting locale-aware decimal separators, min/max value constraints,
+ * precision control, and integration with ag-Grid. It provides validation, formatting, and event hooks for grid editing workflows.
+ *
+ * Usage:
+ *   <grid-numeric-component></grid-numeric-component>
+ *
+ * Key Features:
+ * - Locale-aware decimal separator
+ * - Min/Max value and precision enforcement
+ * - Handles keyboard and paste events for numeric input
+ * - Integrates with ag-Grid editing lifecycle
+ * - Emits onChange and onBlur events for parent grid
+ *
+ * @example
+ * // In ag-Grid column definition:
+ * {
+ *   field: 'amount',
+ *   cellEditorFramework: GridNumericComponent,
+ *   cellEditorParams: {
+ *     config: { minValue: 0, maxValue: 100, maxPrecision: 2 }
+ *   }
+ * }
+ */
 import { Component, ChangeDetectionStrategy, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, ViewContainerRef, TemplateRef, Renderer2, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
 import { INumeric } from './grid-numeric-interface';
 import { CoreNumericService } from '@nexxe/core';
@@ -12,26 +38,46 @@ import { coreVendors } from '@nexxe/core-vendors';
   encapsulation: ViewEncapsulation.None
 })
 export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Reference to the numeric input element */
   @ViewChild('input', { static: true }) input: ElementRef;
+  /** ag-Grid params object */
   public params: any;
+  /** Numeric configuration object */
   public config: INumeric;
+  /** Local value for ngModel binding */
   public localData: any;
+  /** Locale-specific decimal separator */
   public decimalSeparator = '';
+  /** Maximum allowed decimal precision */
   public maxPrecision;
+  /** Value in standard (non-locale) format */
   public valueInStandardFormat: any;
+  /** Tracks if a keydown event is in progress */
   private isKeyDownEvent: boolean = false;
+  /** Grid identifier */
   gridId: string;
+  /** Cell identifier */
   cellId: string;
+  /** Subscription for cell property changes */
   subscription: Subscription = new Subscription();
+  /** Initial value for change detection */
   initialValue: number;
+
   constructor(private renderer: Renderer2,
     private numericService: CoreNumericService,
     private cellService: CellService,
     private cdRef: ChangeDetectorRef
   ) { }
 
+  /**
+   * Angular lifecycle: OnInit
+   */
   ngOnInit() { }
 
+  /**
+   * ag-Grid init method. Sets up config, locale, and cell properties.
+   * @param params ag-Grid cell editor params
+   */
   agInit(params): void {
     this.params = params;
     this.initialValue = this.params.value;
@@ -50,10 +96,17 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setMaxPrecision();
   };
 
+  /**
+   * Subscribes to cell property changes for dynamic updates.
+   */
   subscribe() {
     this.subscription.add(this.cellService.subscribe(this.gridId, this.cellId, this.applyCellProps.bind(this)));
   }
 
+  /**
+   * Applies cell properties (e.g., min/max/precision) from grid service.
+   * @param cellProps Cell property object
+   */
   applyCellProps(cellProps: ICellProperties) {
     if(cellProps && cellProps.numeric){
       this.config.attributes = Object.assign(this.config.attributes, cellProps.numeric);
@@ -61,11 +114,17 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Sets the maximum decimal precision allowed for this cell.
+   */
   setMaxPrecision() {
     let cellProperties = this.cellService.get(this.params.gridId, this.cellId);
     this.maxPrecision = (cellProperties && cellProperties.maxPrecision != undefined) ? cellProperties.maxPrecision : Number(this.config.attributes.maxPrecision);
   }
 
+  /**
+   * Sets the decimal separator based on the current locale.
+   */
   setSeparatorByLocale() {
     let localeConfig = this.numericService.getNumericLocaleConfig();
     this.decimalSeparator = localeConfig.decimalSeparator;
@@ -88,16 +147,25 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
     return (value === 0) ? "0" : value;
   };
 
+  /**
+   * Angular lifecycle: AfterViewInit. Focuses the input after view is initialized.
+   */
   ngAfterViewInit(): void {
     setTimeout(() => {
       this.input.nativeElement.focus();
     });
   }
 
+  /**
+   * Programmatically sets focus to the numeric input.
+   */
   setFocus() {
     this.renderer.selectRootElement('#myInputNumeric').focus();
   }
 
+  /**
+   * Handles focus out event, blurs input and stops grid editing.
+   */
   focusOut() {
     this.renderer.selectRootElement('#myInputNumeric').blur();
     this.params.api.stopEditing();
@@ -105,6 +173,7 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Handles ngModel changes, validates value and triggers onChange event if present.
+   * @param event New value from input
    */
   ngModelChange(event) {
     const lastValue = this.localData;
@@ -144,6 +213,7 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Restricts key input to valid numeric values, including locale decimal separator and minus sign.
    * Handles max/min value and precision enforcement.
+   * @param keydownEvent Keyboard event
    */
   restrictkey(keydownEvent: any) {
     if (keydownEvent.keyCode == null) {
@@ -252,6 +322,7 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Handles paste event, validates pasted content for numeric and precision constraints.
+   * @param event Clipboard event
    */
   onPaste(event: ClipboardEvent) {
     let validContent: string;
@@ -278,14 +349,23 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Checks if the cell is marked as mandatory in the column definition.
+   */
   checkIsMandatory() {
     return this.params.colDef.isMandatory;
   }
 
+  /**
+   * ag-Grid refresh method (not used).
+   */
   refresh(): boolean {
     return false;
   }
 
+  /**
+   * Angular lifecycle: OnDestroy. Updates value and triggers onBlur event if value changed.
+   */
   ngOnDestroy(): void {
     let num = this.parseValue();
     if (this.initialValue !== num) {
