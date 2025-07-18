@@ -9,4 +9,7 @@ export interface INumeric {
     }
     property1?: any,                // this is relevant change
     property2?: any
+
+    testPropety1?: any,
+    testProperty2?: any,
 }
