@@ -210,6 +210,11 @@ export class GridNumericComponent implements OnInit, AfterViewInit, OnDestroy {
     return parsedvalue;
   }
 
+
+  doSomething() { 
+    console.log("Doing Something")
+  }
+
   /**
    * Restricts key input to valid numeric values, including locale decimal separator and minus sign.
    * Handles max/min value and precision enforcement.
