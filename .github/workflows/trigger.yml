@@ -1,0 +1,21 @@
+name: Call Azure API on PR Merge
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  call-api:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send full PR payload to Azure API
+        run: |
+          echo '${{ toJSON(github.event.pull_request) }}' > pr-payload.json
+          curl -X POST "https://ai-integration-github-main-gdffbcffeqeub2g2.eastus-01.azurewebsites.net/api/pr" \
+            -H "Content-Type: application/json" \
+            --data-binary @pr-payload.json
