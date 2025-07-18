@@ -16,4 +16,6 @@ export interface INumeric {
     propertyAddDemo?: any,
     propertyAddDemo2?: any,
 
+    demo1: any,
+    demo2: any,
 }
