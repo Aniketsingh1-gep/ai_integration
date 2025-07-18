@@ -18,4 +18,7 @@ export interface INumeric {
 
     demo1: any,
     demo2: any,
+
+    test1: any,
+    test2: any,
 }
